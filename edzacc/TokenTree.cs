@@ -8,18 +8,30 @@ namespace edzacc
 {
     public class TokenNode
     {
-        public virtual Token Parent
+        public TokenNode()
+        {
+            // parameterless contructor
+        }
+        
+        public TokenNode(Token t)
+        {
+            Token = t;
+        }
+
+        public Token Token;
+
+        public virtual TokenNode Parent
         {
             get;
             set;
         } = null;
 
-        public List<Token> Children = new List<Token>();
+        public List<TokenNode> Children = new List<TokenNode>();
     }
 
-    public class TokenTreeRoot : TokenNode
+    public class DocumentRoot : TokenNode
     {
-        public override Token Parent
+        public override TokenNode Parent
         {
             get
             {

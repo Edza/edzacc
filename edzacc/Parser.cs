@@ -1,64 +1,98 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace edzacc
 {
     public class Parser : IParser
     {
-        TokenTreeRoot IParser.Parse(string text)
+        DocumentRoot IParser.Parse(string text)
         {
-            var sr = new StringReader(text);
-            var root = new TokenTreeRoot();
+            DocumentRoot root = new DocumentRoot();
 
-            using (sr)
-            {
-                var curr = new StringBuilder();
-                var unresolvedTokens = new List<Token>();
+            var words = text.Split(' ', '\t', '\r', '\n').Select(i => i.Trim());
 
-                while (true)
-                {
-                    var res = sr.Read();
-
-                    if (res == -1)
-                        throw new InvalidDataException();
-
-                    var c = (char) res;
-
-                    if (c != ' ' || c != '\t' || c != '\r' || c != '\n')
-                    {
-                        curr.Append(c);
-                    }
-                    else
-                    {
-                        // Token complete
-                        unresolvedTokens.Add(ResolveWord(curr.ToString()));
-
-                        List<Token> resolvedTokens;
-                        bool success = TryCompleteUnresolvedTokens(out resolvedTokens, unresolvedTokens);
-
-                        if (success)
-                        {
-                            root.Children = resolvedTokens;
-                            break;
-                        }
-                    }
-                }
-            }
+            BuildTokenTree(root, new List<string>(words));
 
             return root;
         }
 
-        private bool TryCompleteUnresolvedTokens(out List<Token> resolvedTokens, List<Token> unresolvedTokens)
+        private void BuildTokenTree(TokenNode parent, List<string> remainder)
         {
-            throw new NotImplementedException();
+            while (remainder.Count > 0)
+            {
+                Token targetToken = DetermineTarget(remainder);
+                var node = new TokenNode(targetToken) { Parent = parent };
+
+                if (HasInnerToken(targetToken))
+                {
+                    CompleteUntilInner(targetToken, node, remainder);
+                    BuildTokenTree(node, remainder);
+                    CompleteAfterInner(targetToken, node, remainder);
+                }
+                else
+                {
+                    parent.Children.Add(node);
+                }
+            }
         }
 
-        private Token ResolveWord(string word)
+        private void CompleteAfterInner(Token targetToken, TokenNode node, List<string> remainder)
         {
-            throw new NotImplementedException();
+            if (targetToken is FunctionToken)
+            {
+                if(remainder[0] != "}")
+                    throw new InvalidDataException();
 
+                remainder.RemoveRange(0, 1);
+            }
+        }
+
+        private void CompleteUntilInner(Token targetToken, TokenNode node, List<string> remainder)
+        {
+            if (targetToken is FunctionToken)
+            {
+                var token = (FunctionToken)targetToken;
+
+                token.ReturnType = remainder[0];
+                token.Name = remainder[1].TakeWhile(c => c != '(').ToString();
+                remainder.RemoveRange(0, 2);
+            }
+        }
+
+        private bool HasInnerToken(Token targetToken)
+        {
+            if (targetToken is FunctionToken)
+                return true;
+
+            return false;
+        }
+
+        private FunctionToken DetermineTarget(List<string> remainder)
+        {
+            // is function
+            if (IsDataType(remainder[0]) && IsParameterListOpening(remainder[1]))
+                return new FunctionToken();
+
+            throw new InvalidDataException();
+        }
+
+        private bool IsParameterListOpening(string s)
+        {
+            if (s.Count(c => c == '(') == 1 && s.Count(c => c == ')') <= 1)
+                return true;
+
+            return false;
+        }
+
+        private bool IsDataType(string s)
+        {
+            if (s == "int")
+                return true;
+
+            return false;
         }
     }
 }

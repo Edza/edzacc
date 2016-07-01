@@ -10,11 +10,11 @@ namespace edzacc
     {
         public List<Token> Body;
         public string Name;
-        public DataTypeToken ReturnType;
+        public string ReturnType;
     }
 
-    public class DataTypeToken
-    {
-        public string Name;
-    }
+    //public class DataTypeToken
+    //{
+    //    public string Name;
+    //}
 }

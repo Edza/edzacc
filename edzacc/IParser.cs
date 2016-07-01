@@ -2,6 +2,6 @@
 {
     public interface IParser
     {
-        TokenTreeRoot Parse(string text);
+        DocumentRoot Parse(string text);
     }
 }
