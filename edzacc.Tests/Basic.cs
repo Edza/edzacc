@@ -7,11 +7,13 @@ namespace edzacc.Tests
     public class Basic
     {
         private IParser _parser;
+        private Compiler _compiler;
 
         [TestInitialize]
         public void Init()
         {
             _parser = new Parser();
+            _compiler = new Compiler();
         }
 
         [TestMethod]
@@ -32,7 +34,8 @@ int main() {
 start:
 end start
 ";
-
+            s = _compiler.Compile(_parser.Parse(s));
+           
             Assert.AreEqual(r, s);
         }
 
@@ -55,6 +58,8 @@ i dw
 start:
 end start
 ";
+            s = _compiler.Compile(_parser.Parse(s));
+
             Assert.AreEqual(r, s);
         }
 
@@ -80,6 +85,8 @@ mov eax, offset i
 mov [eax], 10
 end start
 ";
+            s = _compiler.Compile(_parser.Parse(s));
+
             Assert.AreEqual(r, s);
         }
     }
