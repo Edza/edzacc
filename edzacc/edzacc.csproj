@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compiler.cs" />
     <Compile Include="IParser.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />

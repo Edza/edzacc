@@ -9,6 +9,8 @@ namespace edzacc
 {
     public class Parser : IParser
     {
+        private List<string> _declaredIdentifiers = new List<string>();
+            
         DocumentRoot IParser.Parse(string text)
         {
             DocumentRoot root = new DocumentRoot();
@@ -63,6 +65,13 @@ namespace edzacc
 
                 remainder.RemoveRange(0, 1);
             }
+            else if (targetToken is AssignmetToken)
+            {
+                if (remainder[0] != ";")
+                    throw new InvalidDataException();
+
+                remainder.RemoveRange(0, 1);
+            }
         }
 
         private void CompleteUntilInner(Token targetToken, TokenNode node, List<string> remainder)
@@ -79,15 +88,27 @@ namespace edzacc
             {
                 var token = (DeclarationToken)targetToken;
 
+                
                 token.Type = remainder[0];
                 token.Identifier = remainder[1];
                 remainder.RemoveRange(0, 2);
+
+                _declaredIdentifiers.Add(token.Identifier);
+            }
+            else if (targetToken is AssignmetToken)
+            {
+                var token = (AssignmetToken)targetToken;
+
+
+                token.Destination = remainder[0];
+                token.Immediate = int.Parse(remainder[2]);
+                remainder.RemoveRange(0, 3);
             }
         }
 
         private bool HasInnerToken(Token targetToken)
         {
-            if ((new[] {typeof(FunctionToken), typeof(DeclarationToken)}).Contains(targetToken.GetType()))
+            if ((new[] {typeof(FunctionToken), typeof(DeclarationToken), typeof(AssignmetToken)}).Contains(targetToken.GetType()))
                 return true;
 
             return false;
@@ -105,7 +126,21 @@ namespace edzacc
             if (remainder[0] == "}" || remainder[0] == ";")
                 return new EmptyToken();
 
+            if (IsIdentifier(remainder[0]) || remainder[1] == "=" || IsImmediate(remainder[2]))
+                return new AssignmetToken();
+
             throw new InvalidDataException();
+        }
+
+        private bool IsImmediate(string s)
+        {
+            int result;
+            return int.TryParse(s, out result);
+        }
+
+        private bool IsIdentifier(string s)
+        {
+            return _declaredIdentifiers.Contains(s);
         }
 
         private bool IsIdentifierWithSemicolon(string s)

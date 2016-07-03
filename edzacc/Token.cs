@@ -13,6 +13,12 @@ namespace edzacc
         public string Type;
     }
 
+    public class AssignmetToken : Token
+    {
+        public string Destination;
+        public int Immediate;
+    }
+
     public class FunctionToken : Token
     {
         public List<Token> Body;
